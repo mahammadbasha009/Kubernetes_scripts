@@ -1,21 +1,53 @@
+# Download the official Helm installation script from the Helm GitHub repository
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+
+# Give execute permission to the downloaded Helm installation script
 chmod 700 get_helm.sh
+
+# Execute the Helm installation script and install Helm on the server
 ./get_helm.sh
+
+# Verify that Helm is installed and display the installed Helm version
 helm version
 
+
+# Add the official Argo Helm repository and give it the local name "argo"
 helm repo add argo https://argoproj.github.io/argo-helm
+
+# Download/update the latest chart information from all configured Helm repositories
 helm repo update
 
+
+# Create a dedicated Kubernetes namespace called "argocd"
 kubectl create namespace argocd
 
+# Install Argo CD using the argo-cd Helm chart inside the "argocd" namespace
 helm install argocd argo/argo-cd --namespace argocd
 
+
+# Display all Kubernetes resources such as Pods, Services, Deployments,
+# ReplicaSets, etc. inside the argocd namespace
 kubectl get all -n argocd
 
+
+# Change the Argo CD server Service type from ClusterIP to LoadBalancer
+# so that Argo CD can be accessed externally through a cloud load balancer
 kubectl patch svc argocd-server -n argocd -p '{"spec":{"type":"LoadBalancer"}}'
 
+
+# Install jq, a command-line JSON processing tool
+# -y automatically answers "yes" to the installation prompt
 yum install jq -y
 
+
+# Get the Argo CD Load Balancer DNS hostname from the Kubernetes Service
+# -o json outputs the Service information in JSON format
+# jq extracts only the Load Balancer hostname
 kubectl get svc argocd-server -n argocd -o json | jq -r '.status.loadBalancer.ingress[0].hostname'
 
+
+# Get the initial Argo CD admin password from the Kubernetes Secret
+# jsonpath extracts only the encoded password
+# base64 -d decodes the password
+# echo moves the terminal cursor to the next line
 kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d && echo
