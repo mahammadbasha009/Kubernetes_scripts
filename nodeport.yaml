@@ -1,0 +1,54 @@
+# =========================================================
+# 1. DEPLOYMENT
+# =========================================================
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: swiggy-deploy
+  labels:
+    app: swiggy
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: swiggy
+
+  template:
+    metadata:
+      labels:
+        app: swiggy
+
+    spec:
+      containers:
+        - name: cont1
+          image: hanvitha/agecal:latest
+
+          ports:
+            - containerPort: 80
+
+
+# =========================================================
+# 2. SERVICE
+# =========================================================
+
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: abc
+
+spec:
+  type: NodePort
+
+  selector:
+    app: swiggy
+
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 31111
