@@ -1,0 +1,79 @@
+# 1. Configure AWS CLI
+aws configure
+
+# 2. Verify AWS identity
+aws sts get-caller-identity
+
+# 3. Create kOps state bucket
+aws s3api create-bucket --bucket <bucket-name> --region us-east-1
+
+# 4. Enable bucket versioning
+aws s3api put-bucket-versioning \
+  --bucket <bucket-name> \
+  --versioning-configuration Status=Enabled
+
+# 5. Tell kOps where its state is stored
+export KOPS_STATE_STORE=s3://<bucket-name>
+
+# 6. Create kOps cluster configuration
+kops create cluster \
+  --name <cluster-name> \
+  --zones us-east-1a \
+  --control-plane-size c7i-flex.large \
+  --node-size c7i-flex.large
+
+# 7. View cluster configuration
+kops get cluster
+
+# 8. Apply cluster configuration to AWS
+kops update cluster --name <cluster-name> --yes --admin
+
+# 9. Check Kubernetes nodes
+kubectl get nodes
+
+# 10. Check Pods
+kubectl get pods
+
+# 11. Check Pods with IP and node information
+kubectl get pods -o wide
+
+# 12. Check Pods across every namespace
+kubectl get pods -A
+
+# 13. Check Services
+kubectl get svc
+
+# 14. Check Deployments
+kubectl get deploy
+
+# 15. Check common Kubernetes resources
+kubectl get all
+
+# 16. Get detailed Pod information
+kubectl describe pod <pod_name>
+
+# 17. List namespaces
+kubectl get ns
+
+# 18. Create a resource
+kubectl create -f file.yaml
+
+# 19. Create or update a resource
+kubectl apply -f file.yaml
+
+AWS
+ │
+ └── EC2 (kOps admin machine)
+       │
+       ├── AWS CLI ───────────────→ AWS
+       │
+       ├── kOps ──────────────────→ Creates/manages cluster
+       │                              │
+       │                              ↓
+       │                         Kubernetes
+       │                              │
+       └── kubectl ─────────────→ API Server
+                                      │
+                         ┌────────────┼────────────┐
+                         ↓            ↓            ↓
+                       Nodes         Pods       Services
