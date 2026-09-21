@@ -1,0 +1,17 @@
+kubectl apply -f blue-deployment.yaml
+
+kubectl apply -f service.yaml
+
+kubectl apply -f green-deployment.yaml
+
+kubectl get pods
+
+kubectl patch service myyapp-service -p '{"spec":{"selector":{"app":"myyapp","version":"green"}}}'
+
+kubectl get endpoints myyapp-service
+
+# If rollback is required:
+kubectl patch service myyapp-service -p '{"spec":{"selector":{"app":"myyapp","version":"blue"}}}'
+
+# If Green is confirmed:
+kubectl delete deployment myapp-blue
